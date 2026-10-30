@@ -28,7 +28,9 @@ func NewStore(ctx context.Context, db *database.Client) *Store {
 func (c *Store) InitTables(ctx context.Context) error {
 	var editions []database.Edition
 
-	c.db.List(ctx, &editions, database.Filter{})
+	if err := c.db.List(ctx, &editions, database.Filter{}); err != nil {
+		return err
+	}
 
 	for _, edition := range editions {
 		table, err := table.CreateTable(ctx, c.db, edition.CompetitionID, edition.StartYear)
