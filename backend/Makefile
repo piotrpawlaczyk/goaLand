@@ -8,7 +8,11 @@ build:
 
 # Run the application
 run:
-	@go run cmd/api/main.go
+	@go run cmd/api/main.go $(ARGS)
+
+# Create missing tables and fetch initial data
+init-data:
+	@go run cmd/api/main.go --init-data
 
 # Test the application
 test:
@@ -34,4 +38,4 @@ clean:
 watch:
 	@air
 
-.PHONY: build run test all-test clean watch docker-up docker-down itest
+.PHONY: build run init-data test all-test clean watch docker-up docker-down itest
