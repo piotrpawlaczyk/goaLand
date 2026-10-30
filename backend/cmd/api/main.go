@@ -5,6 +5,8 @@ import (
 	"backend/internal/state"
 	"backend/internal/sync"
 	"context"
+	"flag"
+	"fmt"
 	"log"
 	"time"
 
@@ -12,15 +14,13 @@ import (
 	"backend/internal/server"
 )
 
-const (
-	tryFetchData = false
-
-	tryTrackData = true
-)
-
 var trackedCompetitionCodes = []string{"PL", "PD", "BL1", "SA", "FL1"}
 
 func main() {
+	initData := flag.Bool("init-data", false, "Create missing tables and fetch initial data, then exit")
+	track := flag.Bool("track", true, "Update competition data periodically")
+	flag.Parse()
+
 	ctx := context.Background()
 
 	db, err := database.NewClientFromEnv()
@@ -32,22 +32,26 @@ func main() {
 	apiClient := api.NewClientFromEnv()
 
 	worker := sync.New(apiClient, db, store)
-	if tryFetchData {
-		if err := db.ResetDatabase(); err != nil {
+	if *initData {
+		if err := db.CreateDatabase(); err != nil {
 			log.Fatal(err)
 		}
 		if err := fetchData(ctx, worker); err != nil {
 			log.Fatal(err)
 		}
-	} else {
-		worker.InitAreasFromDB(ctx)
+		log.Println("Data initialization complete")
+		return
+	}
+
+	if err := worker.InitAreasFromDB(ctx); err != nil {
+		log.Fatalf("failed to load areas and seasons from database: %v", err)
 	}
 
 	if err = store.InitTables(ctx); err != nil {
 		log.Fatal(err)
 	}
 
-	if tryTrackData {
+	if *track {
 		if err := worker.TrackCompetitions(trackedCompetitionCodes); err != nil {
 			log.Fatal(err)
 		}
@@ -76,10 +80,13 @@ func fetchData(ctx context.Context, worker *sync.Sync) error {
 	}
 
 	for _, code := range trackedCompetitionCodes {
-		worker.AddSeason(ctx, now, sync.SeasonTarget{
+		target := sync.SeasonTarget{
 			CompetitionCode: code,
 			StartYear:       sync.CurrentSeasonStartYear(now),
-		})
+		}
+		if err := worker.AddSeason(ctx, now, target); err != nil {
+			return fmt.Errorf("failed to load competition %s for season %d: %w", code, target.StartYear, err)
+		}
 	}
 	return nil
 }
