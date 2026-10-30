@@ -6,10 +6,10 @@ type ClubLogoProps = {
 
 
 export function ClubLogo({ url, size }: ClubLogoProps) {
-  const logoSize = size ? `${size}px` : "full"
   return url && (
       <img
-        className={`h-[${logoSize}] w-[${logoSize}] shrink-0 object-contain`}
+        className="shrink-0 object-contain"
+        style={{ width: size ?? "100%", height: size ?? "100%" }}
         src={url}
         alt=""
         onError={(event) => event.currentTarget.remove()}
