@@ -1,4 +1,3 @@
-import { Search } from "lucide-react";
 import { Link } from "react-router";
 
 export function Header() {
@@ -12,16 +11,6 @@ export function Header() {
           Goaland
         </Link>
       </h1>
-
-      <label className="flex h-[60px] w-[300px] items-center gap-[10px] rounded-full bg-search px-[20px]">
-        <Search aria-hidden="true" size={20} />
-        <input
-          aria-label="Wyszukaj"
-          className="min-w-0 flex-1 bg-transparent text-secondary outline-none placeholder:text-text-secondary [&::-webkit-search-cancel-button]:hidden"
-          placeholder="wyszukaj"
-          type="search"
-        />
-      </label>
     </header>
   );
 }
