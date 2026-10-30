@@ -7,6 +7,7 @@ import { CompetitionTablePage } from "./pages/competition-table-page";
 import { CompetitionGoalScorersPage } from "./pages/competition-goal-scorers-page";
 import { basePath, clubaPagePath, routePath, routes } from "./config/routes";
 import { ClubPage } from "./pages/club-page";
+import { ErrorPage } from "./pages/error-page";
 
 export const router = createBrowserRouter([
   {
@@ -41,6 +42,6 @@ export const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <div>404 Not Found</div>,
+    Component: ErrorPage,
   },
 ]);
