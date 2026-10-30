@@ -21,6 +21,9 @@ build:
 run:
 	@$(MAKE) -C backend run
 
+init-data:
+	@$(MAKE) -C backend init-data
+
 test:
 	@$(MAKE) -C backend test
 
@@ -30,4 +33,4 @@ all-test:
 watch:
 	@$(MAKE) -C backend watch
 	
-.PHONY: env docker-up docker-down build run test all-test watch
+.PHONY: env docker-up docker-down build run init-data test all-test watch
