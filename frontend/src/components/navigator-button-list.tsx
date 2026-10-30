@@ -1,6 +1,6 @@
 import { NavigatorButton } from "./navigator-button";
 
-const buttonNames = ["wyniki", "mecze", "tabela", "strzelcy", "asystenci"] as const;
+const buttonNames = ["wyniki", "mecze", "tabela", "strzelcy"] as const;
 
 export function NavigatorButtonList() {
   return (

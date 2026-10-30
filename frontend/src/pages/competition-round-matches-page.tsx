@@ -31,9 +31,9 @@ export function CompetitionRoundMatchesPage({fetchMatches}: CompetitionRoundMatc
   
   return(
     <div className="flex flex-col gap-[15px] pt-[50px]">{
-      roundMatches.map(  ({matches, round}) => (
+      roundMatches.filter(({matches}) => matches.length > 0).map(({matches, round}) => (
       <CompetitionMatchCard
-        key={matches[0].id}
+        key={`${round.stage}-${round.matchday ?? "all"}`}
         header={  <MatchWeekHeader  text={roundName(round)} />}
         matches={matches}
         isCurrent={edition.isCurrent}
