@@ -14,7 +14,7 @@ export function CompetitionLayout() {
     const competitionIdNumber = Number(competitionID);
     const startYearNumber = Number(startYear);
 
-    if (!Number.isFinite(competitionIdNumber) || !Number.isFinite(startYearNumber)) {
+    if (!Number.isInteger(competitionIdNumber) || !Number.isInteger(startYearNumber)) {
       setEdition(undefined);
       return;
     }
