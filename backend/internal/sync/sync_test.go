@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -254,4 +255,87 @@ func TestInitGoalScorers(t *testing.T) {
 	}, defaultGoalScorerLimit)
 
 	require.NoError(t, err)
+}
+
+func TestUpdateTeamFetchError(t *testing.T) {
+	target := SeasonTarget{
+		CompetitionCode: testutils.PremierLeagueCode,
+		StartYear:       testutils.Year,
+	}
+	season := Season{
+		CompetitionID:   testutils.PremierLeagueID,
+		CompetitionCode: target.CompetitionCode,
+		StartYear:       target.StartYear,
+	}
+
+	ctx := t.Context()
+	_, apiMock, dbMock, s := testSync(t)
+	s.seasons = Seasons{season}
+	expectedErr := errors.New("failed to fetch teams")
+
+	apiMock.EXPECT().FetchTeams(target.CompetitionCode, target.StartYear).
+		Return(nil, expectedErr)
+	dbMock.EXPECT().DoTransaction(gomock.Any(), gomock.Any()).Times(0)
+	dbMock.EXPECT().ClearSeason(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+	dbMock.EXPECT().SaveAndCheck(gomock.Any(), gomock.Any()).Times(0)
+
+	require.ErrorIs(t, s.updateEdition(ctx, target), expectedErr)
+}
+
+func TestUpdateMatchFetchError(t *testing.T) {
+	target := SeasonTarget{
+		CompetitionCode: testutils.PremierLeagueCode,
+		StartYear:       testutils.Year,
+	}
+	season := Season{
+		CompetitionID:   testutils.PremierLeagueID,
+		CompetitionCode: target.CompetitionCode,
+		StartYear:       target.StartYear,
+	}
+
+	ctx := t.Context()
+	ctrl, apiMock, dbMock, s := testSync(t)
+	txMock := mocks.NewMockDatabase(ctrl)
+	s.seasons = Seasons{season}
+	s.areasByName[testutils.EnglandName] = testutils.EnglandAreaID
+	expectedErr := errors.New("failed to fetch matches")
+
+	player := testutils.NewPlayer()
+	apiMock.EXPECT().FetchTeams(target.CompetitionCode, target.StartYear).
+		Return([]api.Team{{
+			ID: testutils.ArsenalID,
+			Players: []api.Player{{
+				ID:          player.PlayerID,
+				Name:        player.Name,
+				Nationality: testutils.EnglandName,
+				Position:    player.Position,
+			}},
+		}}, nil)
+
+	dbMock.EXPECT().DoTransaction(ctx, gomock.Any()).
+		DoAndReturn(func(_ context.Context, fn func(Database) error) error {
+			err := fn(txMock)
+			require.ErrorIs(t, err, expectedErr)
+			return err
+		})
+	txMock.EXPECT().ClearSeason(ctx, season.CompetitionID, season.StartYear).Return(nil)
+	txMock.EXPECT().Save(ctx, []database.Player{{
+		PlayerID:          player.PlayerID,
+		Name:              player.Name,
+		NationalityAreaID: testutils.EnglandAreaID,
+		Position:          player.Position,
+	}}).Return(nil)
+	txMock.EXPECT().Save(ctx, []database.SeasonPlayer{{
+		PlayerID:        player.PlayerID,
+		TeamID:          testutils.ArsenalID,
+		CompetitionID:   season.CompetitionID,
+		StartSeasonYear: season.StartYear,
+	}}).Return(nil)
+	apiMock.EXPECT().FetchMatches(target.CompetitionCode, target.StartYear).
+		Return(nil, expectedErr)
+	txMock.EXPECT().SaveAndCheck(gomock.Any(), gomock.Any()).Times(0)
+	dbMock.EXPECT().SaveAndCheck(gomock.Any(), gomock.Any()).Times(0)
+	apiMock.EXPECT().FetchGoalScorers(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+
+	require.ErrorIs(t, s.updateEdition(ctx, target), expectedErr)
 }
