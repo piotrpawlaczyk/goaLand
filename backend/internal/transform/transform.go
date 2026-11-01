@@ -28,6 +28,8 @@ func createGoalScorerResponse(player database.SeasonPlayer, position int) GoalSc
 	}
 }
 func GetEditionGoalScorers(players []database.SeasonPlayer) []GoalScorerResponse {
+	goalScorers := []GoalScorerResponse{}
+
 	if len(players) == 0 {
 		return nil
 	}
@@ -39,7 +41,6 @@ func GetEditionGoalScorers(players []database.SeasonPlayer) []GoalScorerResponse
 		return cmp.Compare(a.PlayerID, b.PlayerID)
 	})
 
-	var goalScorers []GoalScorerResponse
 	position := 1
 
 	goalScorers = append(goalScorers, createGoalScorerResponse(players[0], position))
