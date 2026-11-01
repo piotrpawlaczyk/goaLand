@@ -29,7 +29,7 @@ type Seasons []Season
 
 // TODO: load seasons and areas from DB on start working if DB is not empty
 
-//go:generate mockgen -source=sync.go -destination=mocks/sync_mock.go -package=mocks
+//go:generate mockgen -destination=mocks/sync_mock.go -package=mocks . API,Database
 type API interface {
 	FetchAreas() ([]api.Area, error)
 	FetchCompetition(code string) (api.Competition, error)
@@ -41,14 +41,7 @@ type API interface {
 	FetchGoalScorers(code string, startYear, limit int) ([]api.GoalScorer, error)
 }
 
-type Database interface {
-	List(ctx context.Context, dest any, filter database.Filter, preloads ...string) error
-	Save(context.Context, any) error
-	SaveAndCheck(context.Context, any) (bool, error)
-	ClearSeason(ctx context.Context, competitonID, startYear int)
-	DeleteSeasonPlayers(ctx context.Context, competitonID, startYear int)
-	DeleteSeasonMatches(ctx context.Context, competitonID, startYear int)
-}
+type Database = database.StorageDatabase
 
 type Sync struct {
 	apiClient      API
@@ -106,6 +99,16 @@ func New(apiClient API, databaseClient Database, storage *state.Store) *Sync {
 	}
 }
 
+func (s *Sync) replaceDatabase(databaseClient Database) *Sync {
+	return &Sync{
+		apiClient:      s.apiClient,
+		databaseClient: databaseClient,
+		seasons:        s.seasons,
+		areasByName:    s.areasByName,
+		storage:        s.storage,
+	}
+}
+
 func (s *Sync) Start() {
 	s.cron.Start()
 }
@@ -139,6 +142,7 @@ var unknownArea = database.Area{
 }
 
 func NewFromEnv() (*Sync, error) {
+	var databaseClient Database
 	databaseClient, err := database.NewClientFromEnv()
 	if err != nil {
 		return nil, err
