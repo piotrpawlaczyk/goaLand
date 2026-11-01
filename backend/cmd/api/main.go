@@ -6,7 +6,6 @@ import (
 	"backend/internal/sync"
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"time"
 
@@ -15,6 +14,8 @@ import (
 )
 
 var trackedCompetitionCodes = []string{"PL", "PD", "BL1", "SA", "FL1"}
+
+const firstTrackedYears = 2024
 
 func main() {
 	initData := flag.Bool("init-data", false, "Create missing tables and fetch initial data, then exit")
@@ -68,18 +69,28 @@ func main() {
 
 func fetchData(ctx context.Context, worker *sync.Sync) error {
 	now := time.Now()
+	activeYear := sync.CurrentSeasonStartYear(now)
 
-	oldSeasonTargets := []sync.SeasonTarget{{
-		CompetitionCode: "PL",
-		StartYear:       2025,
-	}}
+	oldSeasonTargets := []sync.SeasonTarget{}
+	for _, code := range trackedCompetitionCodes {
+		for year := firstTrackedYears; year <= activeYear; year++ {
+			target := sync.SeasonTarget{
+				CompetitionCode: code,
+				StartYear:       year,
+			}
+			oldSeasonTargets = append(oldSeasonTargets, target)
+		}
+	}
 
 	err := worker.InitializeData(ctx, oldSeasonTargets)
 	if err != nil {
 		return err
 	}
 
-	for _, code := range trackedCompetitionCodes {
+	return nil
+}
+
+/*	for _, code := range trackedCompetitionCodes {
 		target := sync.SeasonTarget{
 			CompetitionCode: code,
 			StartYear:       sync.CurrentSeasonStartYear(now),
@@ -88,5 +99,4 @@ func fetchData(ctx context.Context, worker *sync.Sync) error {
 			return fmt.Errorf("failed to load competition %s for season %d: %w", code, target.StartYear, err)
 		}
 	}
-	return nil
-}
+*/
