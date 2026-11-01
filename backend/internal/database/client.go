@@ -138,3 +138,10 @@ func (c *Client) GetSeasonPlayer(ctx context.Context, id int, preloads ...string
 	err := c.Get(ctx, &scorer, Filter{"goal_scorer_id": id}, preloads...)
 	return &scorer, err
 }
+
+func (c *Client) DoTransaction(ctx context.Context, fn func(client StorageDatabase) error) error {
+	return c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		client := &Client{db: tx}
+		return fn(client)
+	})
+}
