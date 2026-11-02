@@ -9,6 +9,7 @@ import type { Edition } from "../config/editions";
 export function CompetitionLayout() {
   const { competitionID, startYear } = useParams();
   const [edition, setEdition] = useState<Edition>();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const competitionIdNumber = Number(competitionID);
@@ -16,23 +17,43 @@ export function CompetitionLayout() {
 
     if (!Number.isInteger(competitionIdNumber) || !Number.isInteger(startYearNumber)) {
       setEdition(undefined);
+      setIsLoading(false);
       return;
     }
 
+    let cancelled = false;
+    setIsLoading(true);
     setEdition(undefined);
     GetCompetitionEditions(competitionIdNumber)
       .then((editions) => {
-        setEdition(
-          editions.find((item) => item.startYear === startYearNumber),
-        );
+        if (!cancelled) {
+          setEdition(
+            editions.find((item) => item.startYear === startYearNumber),
+          );
+        }
       })
       .catch(() => {
-        setEdition(undefined);
+        if (!cancelled) {
+          setEdition(undefined);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [competitionID, startYear]);
 
+  if (isLoading) {
+    return <div role="status">Ładowanie rozgrywek…</div>;
+  }
+
   if (!edition) {
-    return <div>Nie znaleziono rozgrywek lub trwa ładowanie</div>;
+    return <div>Nie znaleziono rozgrywek</div>;
   }
   
   return (

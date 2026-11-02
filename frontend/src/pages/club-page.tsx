@@ -113,7 +113,7 @@ export function ClubPage() {
       </h2>
 
       <div className="mx-auto flex w-fit gap-[40px]">
-        <section className="flex flex-col items-center gap-[30px]">
+        <section className="flex w-[677px] shrink-0 flex-col items-center gap-[30px]">
           <nav className="flex gap-[80px]" aria-label="Mecze klubu">
             <ViewButton
               active={matchesView === "matches"}
@@ -134,7 +134,7 @@ export function ClubPage() {
           </div>
         </section>
 
-        <section className="flex flex-col items-center gap-[30px]">
+        <section className="flex w-[630px] shrink-0 flex-col items-center gap-[30px]">
           <nav className="flex gap-[80px]" aria-label="Informacje o klubie">
             <ViewButton
               active={clubView === "table"}

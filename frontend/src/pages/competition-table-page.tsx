@@ -12,6 +12,7 @@ export function CompetitionTablePage() {
   const { competitionID, startYear } = useParams();
   const [edition, setEdition] = useState<Edition>();
   const [clubs, setClubs] = useState<ClubStats[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const competitionIdNumber = Number(competitionID);
@@ -20,20 +21,38 @@ export function CompetitionTablePage() {
     if (!Number.isInteger(competitionIdNumber) || !Number.isInteger(startYearNumber)) {
       setEdition(undefined);
       setClubs([]);
+      setIsLoading(false);
       return;
     }
 
+    let cancelled = false;
+    setIsLoading(true);
     setEdition(undefined);
     setClubs([]);
 
     GetCompetitionData(competitionIdNumber, startYearNumber)
-      .then((selectedEdition) => {
-        setEdition(selectedEdition);
-        return getTable(selectedEdition);
+      .then(async (selectedEdition) => {
+        const loadedClubs = await getTable(selectedEdition);
+        if (!cancelled) {
+          setEdition(selectedEdition);
+          setClubs(loadedClubs);
+        }
       })
-      .then(setClubs)
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [competitionID, startYear]);
+
+  if (isLoading) {
+    return <div role="status">Ładowanie rozgrywek…</div>;
+  }
 
   if (!edition) {
     return <div>Nie znaleziono rozgrywek</div>;
