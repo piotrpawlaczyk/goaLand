@@ -5,6 +5,8 @@ import type { Club } from "../config/club";
 import { Link } from "react-router";
 import { ClubLogo } from "./club-logo";
 
+export const TOP_MATCH_WIDTH = 160;
+
 type winner = "team1" | "team2";
 
 type TopMatchProps = {
@@ -21,7 +23,10 @@ type TopMatchProps = {
 function TopMatch({competitionID, homeTeam, awayTeam, homeTeamString, awayTeamString, 
   winner, separator, children}: TopMatchProps) {
   return (
-    <div className="h-[56px] w-[160px] shrink-0 flex flex-col items-center -space-y-[2px]">
+    <div
+      className="h-[56px] shrink-0 flex flex-col items-center -space-y-[2px]"
+      style={{ width: TOP_MATCH_WIDTH }}
+    >
       <div className="text-secondary relative flex w-full  h-[28px] items-center justify-center rounded-[5px]  bg-sections gap-[3px]">
         <ClubLogo url={homeTeam.crestUrl} size={20} />
           <div className="  flex items-center justify-center">
