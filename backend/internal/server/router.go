@@ -26,11 +26,7 @@ func NewRouter(db *database.Client, store *state.Store) http.Handler {
 
 	handler := handler.NewHandler(db, store)
 
-	//example simply endpoint
 	r.Get("/health", handler.GetHealth)
-
-	// Endpoints pdowjny MECZE klubwoe i druzynowe
-	r.Get("/teams/{teamID}/matches", handler.GetTeamsMatches)
 
 	r.Get("/competitions", handler.GetActiveEdition)
 	r.Get("/competitions/{competitionID}/editions", handler.GetCompetitionEditions)
