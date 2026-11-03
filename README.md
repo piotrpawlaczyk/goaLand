@@ -135,3 +135,14 @@ Load your configuration and run the unit and integration tests:
 source  ./scripts/load_env.sh
 POSTGRES_NAME=goaland_test make all-test
 ```
+
+
+## Design
+
+Initial UI designs created in Figma. The final application includes some changes.
+
+[View the Figma designs](https://www.figma.com/design/mA9OdTxdDkIrBs33yh8OQI/goaLand?node-id=46-280&t=sGZUpzW3S0V4ddKL-1)
+
+[Home page](docs/design/home-page.png)
+
+[View all design screenshots](docs/design/)
