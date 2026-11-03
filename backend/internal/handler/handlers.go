@@ -25,20 +25,29 @@ func (h *Handler) GetAllMatches(w http.ResponseWriter, r *http.Request) {
 	startYear := sync.CurrentSeasonStartYear(time.Now())
 
 	var allMatches [][]transform.MatchResponse
-	for _, statuses := range utils.DisplayableMatchStatusesLists {
-		matches, err := h.db.GetAllMatchesWithStatus(ctx, startYear, statuses)
-		if err != nil {
-			WriteError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		if slices.Compare(statuses, utils.LiveMatchStatuses) == 0 {
-			allMatches = append(allMatches,
-				transform.GetFeaturedMatches(matches))
-		} else {
-			allMatches = append(allMatches,
-				transform.GetResponseMatchesWithLimit(matches, maxMatchesOnTop))
-		}
+
+	matches, err := h.db.GetAllMatchesWithStatus(ctx, startYear, utils.UpcomingMatchStatuses)
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
+	allMatches = append(allMatches,
+		transform.GetResponseMatchesWithLimit(matches, maxMatchesOnTop, true))
+
+	matches, err = h.db.GetAllMatchesWithStatus(ctx, startYear, utils.LiveMatchStatuses)
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	allMatches = append(allMatches, transform.GetFeaturedMatches(matches))
+
+	matches, err = h.db.GetAllMatchesWithStatus(ctx, startYear, utils.FinishedMatchStatuses)
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	allMatches = append(allMatches,
+		transform.GetResponseMatchesWithLimit(matches, maxMatchesOnTop, false))
 
 	WriteJSON(w, http.StatusOK, allMatches)
 }
@@ -93,28 +102,10 @@ func (h *Handler) loadEditionMatches(w http.ResponseWriter, r *http.Request,
 	return matches, true
 }
 
-func (h *Handler) GetTeamsMatches(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	teamsID, err := teamParam(r)
-	if err != nil {
-		BadRequest(w)
-		return
-	}
-
-	response, err := h.db.GetTeamsMatches(ctx, teamsID)
-	if err != nil {
-		WriteError(w, http.StatusInternalServerError, "failed to load matches")
-		return
-	}
-
-	WriteJSON(w, http.StatusOK, response)
-}
-
 func (h *Handler) GetClubPlayers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	teamID, err := teamParam(r)
+	clubId, err := clubParam(r)
 	if err != nil {
 		BadRequest(w)
 		return
@@ -132,7 +123,7 @@ func (h *Handler) GetClubPlayers(w http.ResponseWriter, r *http.Request) {
 	if err := h.db.List(ctx, &players, database.Filter{
 		"competition_id":    competitionID,
 		"start_season_year": startYear,
-		"team_id":           teamID,
+		"team_id":           clubId,
 	}, database.PreloadPlayer, "Player.NationalityArea"); err != nil {
 		WriteError(w, http.StatusInternalServerError, "failed to load club players")
 		return

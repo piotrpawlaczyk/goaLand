@@ -46,7 +46,7 @@ func getAcitveOrUpcoming(competition database.Competition) (EditionResponse, boo
 }
 
 func GetActiveEditions(competitions []database.Competition) []EditionResponse {
-	var response []EditionResponse
+	response := []EditionResponse{}
 
 	for _, competition := range competitions {
 		if competitionEdition, ok := getAcitveOrUpcoming(competition); ok {

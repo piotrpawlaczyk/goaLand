@@ -10,7 +10,6 @@ import (
 const (
 	CompetitionIDParam = "competitionID"
 	StartYearParam     = "startYear"
-	TeamIDParam        = "teamID"
 	ClubIDParam        = "clubID"
 	MatchIDParam       = "matchID"
 	GoalScorerIDParam  = "goalScorerID"
@@ -21,14 +20,6 @@ func clubParam(r *http.Request) (int, error) {
 	clubID, err := parseInt(r, ClubIDParam)
 	if err != nil {
 		return 0, fmt.Errorf("invalid club ID")
-	}
-
-	return clubID, nil
-}
-func teamParam(r *http.Request) (int, error) {
-	clubID, err := parseInt(r, ClubIDParam)
-	if err != nil {
-		return 0, fmt.Errorf("invalid team ID")
 	}
 
 	return clubID, nil

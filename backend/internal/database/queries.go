@@ -87,24 +87,6 @@ func sortMatches(matches []Match) {
 	})
 }
 
-func (c *Client) GetTeamsMatches(ctx context.Context, teamID int) ([]Match, error) {
-	var matches []Match
-
-	err := c.ListOr(ctx, &matches, []Filter{
-		{
-			"home_team_id": teamID,
-		}, {
-			"away_team_id": teamID,
-		},
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return matches, err
-}
-
 func (c *Client) GetEditionPlayers(ctx context.Context, competitionID int, startYear int) ([]SeasonPlayer, error) {
 	var goalScorers []SeasonPlayer
 	err := c.List(ctx, &goalScorers, Filter{
