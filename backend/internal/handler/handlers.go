@@ -7,7 +7,6 @@ import (
 	"backend/internal/utils"
 	"context"
 	"net/http"
-	"slices"
 	"time"
 )
 
