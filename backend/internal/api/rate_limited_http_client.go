@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	stdSync "sync"
 )
 
 const cooldownSeconds = 5
@@ -15,6 +17,7 @@ const cooldown = time.Duration(cooldownSeconds) * time.Second
 type RateLimitedHTTPClient struct {
 	httpClient   HttpClient
 	blockedUntil time.Time
+	mutex        stdSync.RWMutex
 }
 
 func newRateLimitedHTTPClient(timeout time.Duration) *RateLimitedHTTPClient {
@@ -34,6 +37,9 @@ func (c *RateLimitedHTTPClient) sendQuerry(req *http.Request) (*http.Response, e
 }
 
 func (c *RateLimitedHTTPClient) Do(req *http.Request) (*http.Response, error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	c.wait()
 
 	resp, err := c.sendQuerry(req)
@@ -42,6 +48,7 @@ func (c *RateLimitedHTTPClient) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	c.notify(resp)
+
 	return resp, nil
 }
 
