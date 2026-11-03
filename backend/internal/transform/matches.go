@@ -83,9 +83,13 @@ func createMatchResponse(match database.Match) MatchResponse {
 	}
 }
 
-func GetResponseMatchesWithLimit(matches []database.Match, limit int) []MatchResponse {
+func GetResponseMatchesWithLimit(matches []database.Match, limit int, firsts bool) []MatchResponse {
 	if len(matches) > limit {
-		matches = matches[:limit]
+		if firsts {
+			matches = matches[:limit]
+		} else {
+			matches = matches[len(matches)-limit:]
+		}
 	}
 
 	return GetResponseMatches(matches)
