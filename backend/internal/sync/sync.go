@@ -63,19 +63,23 @@ func (s *SeasonJob) Run() {
 	ctx := context.Background()
 	now := time.Now()
 
-	fmt.Printf("update competition %s\n", s.season.CompetitionCode)
+	fmt.Printf("update competition %s", s.season.CompetitionCode)
 	if startYear := CurrentSeasonStartYear(now); startYear == s.season.StartYear {
 		err := s.sync.updateEdition(ctx, s.season)
 		if err != nil {
-			fmt.Print(err.Error())
+			fmt.Println(err.Error())
+			return
 		}
 	} else {
 		s.season.StartYear = startYear
 		err := s.sync.AddSeason(ctx, now, s.season)
 		if err != nil {
-			fmt.Print(err.Error())
+			fmt.Println(err.Error())
+			return
 		}
 	}
+	fmt.Println("succesfull")
+
 }
 
 var nationalityAliases = map[string]string{
