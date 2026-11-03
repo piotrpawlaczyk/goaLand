@@ -31,7 +31,7 @@ func GetEditionGoalScorers(players []database.SeasonPlayer) []GoalScorerResponse
 	goalScorers := []GoalScorerResponse{}
 
 	if len(players) == 0 {
-		return nil
+		return goalScorers
 	}
 
 	slices.SortFunc(players, func(a, b database.SeasonPlayer) int {
